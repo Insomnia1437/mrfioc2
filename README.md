@@ -1,3 +1,47 @@
+# mrfioc2-evtlog Version
+
+*Save all the timing system event codes on disk for further diagnosis (either ascii format or binary)*
+
+
+## Features:
+
+- Based on mrfioc2-2-2.0
+- Modified file `evrMrmApp\src\drvem.cpp` and `evrMrmApp\src\drvem.cpp` only
+- Only tested VME-EVR-230RF on VxWorks
+- EPICS BASE should >= 3.15.1 (utilization of thread safe versions of ring buffers)
+- Need NFS (why not Channel Access? [check this paper for the detail](https://www.pasj.jp/web_publish/pasj2019/proceedings/PDF/FRPH/FRPH001.pdf))
+- Log files hierarchy is like `/YEAR/MONTH/DAY/HOUR.log`
+- Log data format is like `code-second.nanosecond`
+- Timestamp reset event `125` is also logged
+
+## How to use
+
+Apart from normal mrfioc2 module, you need to configure NFS Mount and some parameters in `st.cmd`.
+
+i.e.
+
+```shell
+hostAdd "linacdisk11", "172.19.64.150"
+
+nfsAuthUnixSet("linacdisk11",12681,12600,0,0)
+
+nfsMount "linacdisk11","/vol01/users/sdcswd/epics/R3.15.5/ioc/evtlog/evtlog", "/evtlog"
+
+drvemEvtLogConfigure("/evtlog", 50000, 0, 1)
+```
+
+the parameters of `drvemEvtLogConfigure` iocsh function:
+
+1. directory used to save event log files
+2. ring buffer size, default is 50000
+3. evtlog thread sleep time during the iocInit, default is 15, set 0 to disable event logging.
+4. format of log file
+    - `1`: ascii file
+    - `2`: binary file
+
+------------------
+
+
 What is Available?
 ------------------
 

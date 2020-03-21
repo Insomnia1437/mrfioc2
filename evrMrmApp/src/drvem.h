@@ -27,6 +27,7 @@
 #include <epicsMessageQueue.h>
 #include <callback.h>
 #include <epicsMutex.h>
+#include <epicsRingPointer.h>
 
 #include "drvemInput.h"
 #include "drvemOutput.h"
@@ -45,6 +46,17 @@
 #include "configurationInfo.h"
 
 class EVRMRM;
+
+struct epicsShareClass bufferedEvent
+{
+    epicsUInt8 code;
+    epicsTimeStamp ts;
+
+    bufferedEvent():code(0), ts()
+    {
+
+    }
+};
 
 struct epicsShareClass eventCode {
     epicsUInt8 code; // constant
@@ -266,6 +278,14 @@ private:
     MRMGpio gpio_;
 
     mrf::auto_ptr<EvrSeqManager> seq;
+
+    // EVR name
+    const std::string evrName;
+    //Add evtlog ring buffer
+    epicsRingPointer<bufferedEvent> ringbuffer;
+    void evtlog_invoke();
+    epicsThreadRunableMethod<EVRMRM, &EVRMRM::evtlog_invoke> evtlog_invoke_method;
+    epicsThread evtlog_invoke_task;
 
     // run when FIFO not-full IRQ is received
     void drain_fifo();

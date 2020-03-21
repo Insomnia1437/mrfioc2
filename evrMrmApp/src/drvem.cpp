@@ -15,13 +15,16 @@
 #include <stdexcept>
 #include <algorithm>
 #include <sstream>
-
+#include <sys/stat.h>
 #include <epicsMath.h>
 #include <errlog.h>
 #include <epicsMath.h>
 #include <dbDefs.h>
 #include <dbScan.h>
 #include <epicsInterrupt.h>
+#include "epicsRingPointer.h"
+#include <iocsh.h>
+#include "taskwd.h"
 
 #include "mrmDataBufTx.h"
 #include "sfp.h"
@@ -43,6 +46,11 @@
 #include <evr/input.h>
 #include <evr/delay.h>
 
+#ifdef  vxWorks
+#include <ioLib.h>
+#else
+#include <unistd.h>
+#endif
 #if defined(__linux__) || defined(_WIN32)
 #  include "devLibPCI.h"
 #endif
@@ -117,6 +125,13 @@ extern "C" {
 static
 const double fracref=24.0; // MHz
 
+// For EvtLog
+static char evtlogdir[256u];
+static epicsUInt32 evtlogringbuffersize = 50000;
+static epicsUInt16 evtlogwait = 10;
+static epicsUInt16 evtlogstart = 0;
+static epicsUInt16 evtlogencoding = 1;
+
 EVRMRM::EVRMRM(const std::string& n,
                bus_configuration& busConfig, const Config *c,
                volatile unsigned char* b,
@@ -140,6 +155,12 @@ EVRMRM::EVRMRM(const std::string& n,
   ,pulsers()
   ,shortcmls()
   ,gpio_(*this)
+  ,evrName(n)
+  ,ringbuffer(evtlogringbuffersize, 1)
+  ,evtlog_invoke_method(*this)
+  ,evtlog_invoke_task(evtlog_invoke_method, "EvtLog",
+                   epicsThreadGetStackSize(epicsThreadStackBig),
+                   epicsThreadPriorityHigh )
   ,drain_fifo_method(*this)
   ,drain_fifo_task(drain_fifo_method, "EVRFIFO",
                    epicsThreadGetStackSize(epicsThreadStackBig),
@@ -354,8 +375,8 @@ try{
     }
 
     eventNotifyAdd(MRF_EVENT_TS_COUNTER_RST, &seconds_tick, (void*)this);
-
     drain_fifo_task.start();
+    evtlog_invoke_task.start();
 
     if(busConfig.busType==busType_pci)
         mrf::SPIDevice::registerDev(n+":FLASH", mrf::SPIDevice(this, 1));
@@ -1309,6 +1330,16 @@ EVRMRM::drain_fifo()
             events[evt].last_sec=READ32(base, EvtFIFOSec);
             events[evt].last_evt=READ32(base, EvtFIFOEvt);
 
+            if (ringbuffer.isFull() || evtlogstart != 1) {
+                // Add a flag to check ringbuffer overflow?
+            }else if ((evt != 112) && (evt != 113)){
+                // buffer event '125', omit '112' and '113'
+                bufferedEvent *bevent = new bufferedEvent;
+                bevent->code =evt;
+                getTimeStamp(&bevent->ts, evt);
+                ringbuffer.push(bevent);
+            }
+
             if (events[evt].again) {
                 // ignore extra events in buffer.
             } else if (events[evt].waitingfor>0) {
@@ -1505,3 +1536,150 @@ EVRMRM::seconds_tick(void *raw, epicsUInt32)
         callbackRequest(&evr->timeSrc_cb);
     }
 }
+void
+EVRMRM::evtlog_invoke()
+{
+    printf("EvtLog invoke task start\n");
+    if (evtlogwait <= 0) {
+        printf("Evtlog task stop\n");
+        return;
+    }
+    epicsThreadSleep(evtlogwait);
+    evtlogstart = 1;
+    FILE *logfile = NULL;
+    time_t sec;
+    struct tm tm;
+    std::string postfix = "/evtLog_"+evrName;
+    strcat(evtlogdir, postfix.c_str());
+    if(access(evtlogdir, F_OK) != 0) {
+        #ifdef  vxWorks
+        if (-1 == mkdir(evtlogdir)){
+        #else
+        if (-1 == mkdir(evtlogdir, 0775)){
+        #endif
+            printf("mkdir error\n");
+            return;
+        }
+    }
+    char year[256], month[256], day[256];
+    char fullpath[256];
+    bufferedEvent *be;
+    while(1) {
+        sec = time(NULL);
+        #ifdef  vxWorks
+        if (localtime_r(&sec, &tm) == 0)
+        #else
+        if (localtime_r(&sec, &tm) != NULL)
+        #endif
+        {
+            (void)snprintf(year, sizeof(year), "%s/%d", evtlogdir, tm.tm_year+1900);
+            if(access(year, F_OK) != 0) {
+                #ifdef  vxWorks
+                if (-1 == mkdir(year)){
+                #else
+                if (-1 == mkdir(year, 0775)){
+                #endif
+                    printf("mkdir year error\n");
+                    return;
+                }
+            }
+            (void)snprintf(month, sizeof(month), "%s/%02d", year, tm.tm_mon+1);
+            if (access(month, F_OK) != 0) {
+                #ifdef  vxWorks
+                if (-1 == mkdir(month)){
+                #else
+                if (-1 == mkdir(month, 0775)){
+                #endif
+                    printf("mkdir month error\n");
+                    return;
+                }
+            }
+            (void)snprintf(day, sizeof(day), "%s/%02d", month, tm.tm_mday);
+            if (access(day, F_OK) != 0) {
+                #ifdef  vxWorks
+                if (-1 == mkdir(day)){
+                #else
+                if (-1 == mkdir(day, 0775)){
+                #endif
+                    printf("mkdir day error\n");
+                    return;
+                }
+            }
+            (void)snprintf(fullpath, sizeof(fullpath), "%s/%02d.log", day, tm.tm_hour);
+
+            if (access(fullpath, F_OK) != 0) {
+                if (logfile != NULL)
+                    (void)fclose(logfile);
+                if (evtlogencoding == 1) {
+                    if (NULL == (logfile = fopen(fullpath, "w"))) {
+                        printf("open log file error: %s\n", fullpath);
+                        return;
+                    }
+                }else {
+                    if (NULL == (logfile = fopen(fullpath, "wb+"))) {
+                        printf("open log file error: %s\n", fullpath);
+                        return;
+                    }
+                }
+            }
+        }
+
+        while(!ringbuffer.isEmpty()){
+            be  = ringbuffer.pop();
+            // if (be->ts.secPastEpoch == 0)
+            //     continue;
+            // ascii file and binary file
+            if (evtlogencoding == 1) {
+                fprintf(logfile, "%d-%d.%d\n", be->code, be->ts.secPastEpoch, be->ts.nsec);
+            }
+            else {
+                fwrite (&(be->code), sizeof(unsigned char), 1, logfile);
+                fwrite (&(be->ts), sizeof(unsigned int), 2, logfile);
+            }
+            delete be;
+        }
+        epicsThreadSleep(0.1);
+    }
+    // stop evtlog
+    evtlogstart = 0;
+}
+
+int drvemEvtLogConfigure(const char *logsite, int ring_buffer_size, int wait_time, int encoding)
+{
+    if ((logsite == NULL) || (ring_buffer_size == 0)) {
+        (void)errlogPrintf("invalid argument\n");
+        return -1;
+    }
+    evtlogdir[sizeof(evtlogdir)-1u] = '\0';
+    strncpy(evtlogdir, logsite, sizeof(evtlogdir));
+    if (evtlogdir[sizeof(evtlogdir)-1u] != '\0') {
+        (void)errlogPrintf("directory name is too long\n");
+        return -1;
+    }
+    evtlogringbuffersize = ring_buffer_size;
+    if (wait_time < 0) {
+        wait_time = 0;
+    }
+    evtlogwait = wait_time;
+    if ((encoding != 1) && (encoding != 2)) {
+        encoding = 1;
+    }
+    evtlogencoding = encoding;
+    return 0;
+}
+
+static const iocshArg drvemEvtLogConfigure_arg0 = {"logsite", iocshArgString};
+static const iocshArg drvemEvtLogConfigure_arg1 = {"ring_buffer_size", iocshArgInt};
+static const iocshArg drvemEvtLogConfigure_arg2 = {"wait_time", iocshArgInt};
+static const iocshArg drvemEvtLogConfigure_arg3 = {"encoding", iocshArgInt};
+static const iocshArg * const drvemEvtLogConfigure_args[] = {&drvemEvtLogConfigure_arg0, &drvemEvtLogConfigure_arg1, &drvemEvtLogConfigure_arg2, &drvemEvtLogConfigure_arg3};
+static const iocshFuncDef drvemEvtLogConfigureFuncdef = {"drvemEvtLogConfigure", 4, drvemEvtLogConfigure_args};
+static void drvemEvtLogConfigureCallFunc(const iocshArgBuf *args)
+{
+	drvemEvtLogConfigure(args[0u].sval, args[1u].ival, args[2u].ival, args[3u].ival);
+}
+static void drvemEvtLogConfigureRegistrer(void)
+{
+	iocshRegister(&drvemEvtLogConfigureFuncdef, drvemEvtLogConfigureCallFunc);
+}
+epicsExportRegistrar(drvemEvtLogConfigureRegistrer);
