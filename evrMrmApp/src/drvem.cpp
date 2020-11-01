@@ -1549,13 +1549,15 @@ EVRMRM::evtlog_invoke()
     FILE *logfile = NULL;
     time_t sec;
     struct tm tm;
-    std::string postfix = "/evtLog_"+evrName;
-    strcat(evtlogdir, postfix.c_str());
-    if(access(evtlogdir, F_OK) != 0) {
+    char prefix[128] = "";
+    std::string postfix = "/"+evrName;
+    strcat(prefix, evtlogdir);
+    strcat(prefix, postfix.c_str());
+    if(access(prefix, F_OK) != 0) {
         #ifdef  vxWorks
-        if (-1 == mkdir(evtlogdir)){
+        if (-1 == mkdir(prefix)){
         #else
-        if (-1 == mkdir(evtlogdir, 0775)){
+        if (-1 == mkdir(prefix, 0775)){
         #endif
             printf("mkdir error\n");
             return;
@@ -1572,7 +1574,7 @@ EVRMRM::evtlog_invoke()
         if (localtime_r(&sec, &tm) != NULL)
         #endif
         {
-            (void)snprintf(year, sizeof(year), "%s/%d", evtlogdir, tm.tm_year+1900);
+            (void)snprintf(year, sizeof(year), "%s/%d", prefix, tm.tm_year+1900);
             if(access(year, F_OK) != 0) {
                 #ifdef  vxWorks
                 if (-1 == mkdir(year)){
@@ -1628,6 +1630,7 @@ EVRMRM::evtlog_invoke()
             be  = ringbuffer.pop();
             // if (be->ts.secPastEpoch == 0)
             //     continue;
+            be->ts.secPastEpoch += POSIX_TIME_AT_EPICS_EPOCH;
             // ascii file and binary file
             if (evtlogencoding == 1) {
                 fprintf(logfile, "%d-%d.%d\n", be->code, be->ts.secPastEpoch, be->ts.nsec);

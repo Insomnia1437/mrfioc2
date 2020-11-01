@@ -13,6 +13,7 @@
 - Log files hierarchy is like `/YEAR/MONTH/DAY/HOUR.log`
 - Log data format is like `code-second.nanosecond`
 - Timestamp reset event `125` is also logged
+- Support Several EVRs (theoretically)
 
 ## How to use
 
@@ -27,7 +28,7 @@ nfsAuthUnixSet("linacdisk11",12681,12600,0,0)
 
 nfsMount "linacdisk11","/vol01/users/sdcswd/epics/R3.15.5/ioc/evtlog/evtlog", "/evtlog"
 
-drvemEvtLogConfigure("/evtlog", 50000, 0, 1)
+drvemEvtLogConfigure("/evtlog", 50000, 15, 1)
 ```
 
 the parameters of `drvemEvtLogConfigure` iocsh function:
