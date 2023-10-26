@@ -1330,13 +1330,15 @@ EVRMRM::drain_fifo()
             events[evt].last_sec=READ32(base, EvtFIFOSec);
             events[evt].last_evt=READ32(base, EvtFIFOEvt);
 
-            if (ringbuffer.isFull() || evtlogstart != 1) {
+            if (evtlogstart != 1 || ringbuffer.isFull()) {
                 // Add a flag to check ringbuffer overflow?
             }else if ((evt != 112) && (evt != 113)){
                 // buffer event '125', omit '112' and '113'
                 bufferedEvent *bevent = new bufferedEvent;
                 bevent->code =evt;
-                getTimeStamp(&bevent->ts, evt);
+                bevent->ts.secPastEpoch = events[evt].last_sec;
+                bevent->ts.nsec = events[evt].last_evt;
+                // getTimeStamp(&bevent->ts, evt);
                 ringbuffer.push(bevent);
             }
 
@@ -1539,13 +1541,19 @@ EVRMRM::seconds_tick(void *raw, epicsUInt32)
 void
 EVRMRM::evtlog_invoke()
 {
+    if(!evtlogstart)
+        return;
     printf("EvtLog invoke task start\n");
     if (evtlogwait <= 0) {
         printf("Evtlog task stop\n");
         return;
     }
+    double period=1e9/clockTS(); // in nanoseconds
+    if(period<=0 || !isfinite(period)){
+        printf("fail to read clockTS\n");
+        return;
+    }
     epicsThreadSleep(evtlogwait);
-    evtlogstart = 1;
     FILE *logfile = NULL;
     time_t sec;
     struct tm tm;
@@ -1559,7 +1567,7 @@ EVRMRM::evtlog_invoke()
         #else
         if (-1 == mkdir(prefix, 0775)){
         #endif
-            printf("mkdir error\n");
+            printf("mkdir %s: error\n", prefix);
             return;
         }
     }
@@ -1630,10 +1638,12 @@ EVRMRM::evtlog_invoke()
             be  = ringbuffer.pop();
             // if (be->ts.secPastEpoch == 0)
             //     continue;
-            be->ts.secPastEpoch += POSIX_TIME_AT_EPICS_EPOCH;
+            // be->ts.secPastEpoch += POSIX_TIME_AT_EPICS_EPOCH;
+            // Convert ticks to nanoseconds
+            be->ts.nsec=(epicsUInt32)(be->ts.nsec * period);
             // ascii file and binary file
             if (evtlogencoding == 1) {
-                fprintf(logfile, "%d-%d.%d\n", be->code, be->ts.secPastEpoch, be->ts.nsec);
+                fprintf(logfile, "%u-%u.%u\n", be->code, be->ts.secPastEpoch, be->ts.nsec);
             }
             else {
                 fwrite (&(be->code), sizeof(unsigned char), 1, logfile);
@@ -1668,6 +1678,7 @@ int drvemEvtLogConfigure(const char *logsite, int ring_buffer_size, int wait_tim
         encoding = 1;
     }
     evtlogencoding = encoding;
+    evtlogstart = 1;
     return 0;
 }
 

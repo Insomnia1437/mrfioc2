@@ -7,6 +7,7 @@ device(waveform, INST_IO, devwaveformindataBufRx, "MRM EVR Buf Rx")
 
 # RTEMS only workaround for VME interrupt timing problem
 registrar(registerISRHack)
+registrar(drvemEvtLogConfigureRegistrer)
 
 variable(mrmEvrFIFOPeriod,double)
 
