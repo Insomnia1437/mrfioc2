@@ -64,9 +64,18 @@ file "mrmevrdc.template"
 file "evrmap.db"
 {pattern
 {NAME, OBJ, func, EVT}
-{"\$(P)EvtBlink0-SP", "$(EVR)", Blink, 15}
-{"\$(P)EvtBlink1-SP", "$(EVR)", Blink, 0}
-{"\$(P)EvtResetPS-SP","$(EVR)", "Reset PS", 123}
+{"\$(P)EvtBlink0-SP",   "$(EVR)", "Blink", 15}
+{"\$(P)EvtBlink1-SP",   "$(EVR)", "Blink", 0}
+{"\$(P)EvtResetPS-SP",  "$(EVR)", "Reset PS", 123}
+{"\$(P)PpsFwd-SP",      "$(EVR)", "Forward", 125}
+{"\$(P)EvtAFwd-SP",     "$(EVR)", "Forward", 0}
+{"\$(P)EvtBFwd-SP",     "$(EVR)", "Forward", 0}
+{"\$(P)EvtCFwd-SP",     "$(EVR)", "Forward", 0}
+{"\$(P)EvtDFwd-SP",     "$(EVR)", "Forward", 0}
+{"\$(P)EvtEFwd-SP",     "$(EVR)", "Forward", 0}
+{"\$(P)EvtFFwd-SP",     "$(EVR)", "Forward", 0}
+{"\$(P)EvtGFwd-SP",     "$(EVR)", "Forward", 0}
+{"\$(P)EvtHFwd-SP",     "$(EVR)", "Forward", 0}
 }
 
 file "evrevent.db"
