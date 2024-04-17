@@ -63,8 +63,7 @@ if(!$foundvcs && -d "$opt_t/.hg") { # Mercurial
 }
 if(!$foundvcs && -d "$opt_t/.git") {
     # same format as Mercurial
-    my @tags = `git --git-dir="$opt_t/.git" tag --sort=-creatordate`;
-
+    my @tags = `git --git-dir="$opt_t/.git" for-each-ref --sort=-creatordate --format='%(refname:short)' refs/tags`;
     my $valid_tag;
     # find first tag which starts from number
     foreach my $tag (@tags) {
