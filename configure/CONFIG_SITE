@@ -28,10 +28,13 @@
 # but want to suppress deprecation warnings
 USR_CPPFLAGS += -DUSE_TYPED_RSET
 
+# Uncomment this to enable IRQPollers for EVM embedded EVR (EVRU/D)
+# USR_CPPFLAGS += -D__IRQP_EVRU_PRD=0.01
+# USR_CPPFLAGS += -D__IRQP_EVRD_PRD=0.01
+
 # Uncomment the following to enable strict treatment of warnings
 #USR_CFLAGS += -Wall -Wextra -Wno-unused-parameter -Werror -Wno-error=deprecated-declarations
 #USR_CXXFLAGS += -Wall -Wextra -Wno-unused-parameter -Werror -Wno-error=deprecated-declarations
-
 # Set to YES to link executable (mostly) statically
 #STATIC_BUILD=NO
 
