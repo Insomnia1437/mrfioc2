@@ -6,6 +6,7 @@ record(mbbo, "$(P)Src$(s=:)Clk-SP") {
   field(DTYP, "Obj Prop uint16")
   field(OUT , "@OBJ=$(OBJ), PROP=Clock Mode")
   field(PINI, "YES")
+  field(VAL,  "0")
   field(ZRST, "EVG")
   field(ONST, "Internal")
   field(TWST, "EVG FB:Internal")

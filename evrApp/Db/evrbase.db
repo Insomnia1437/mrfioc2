@@ -332,6 +332,7 @@ record(mbbo, "$(P)Time$(s=:)Src-Sel") {
   field(DTYP, "Raw Soft Channel")
   field(OUT , "$(P)Time$(s=:)Src-Sel_")
   field(PINI, "YES")
+  field(VAL,  "0")
   field(ZRST, "Event clock")
   field(ONST, "Mapped code(s)")
   field(TWST, "DBus 4")
