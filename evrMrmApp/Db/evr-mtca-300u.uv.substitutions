@@ -67,10 +67,6 @@ file "evrmap.db"
 {"\$(P)EvtBlink0-SP",   "$(EVR)", "Blink", 15}
 {"\$(P)EvtBlink1-SP",   "$(EVR)", "Blink", 0}
 {"\$(P)EvtResetPS-SP",  "$(EVR)", "Reset PS", 123}
-{"\$(P)Sec0Fwd-SP",     "$(EVR)", "Forward", 0x70}
-{"\$(P)Sec1Fwd-SP",     "$(EVR)", "Forward", 0x71}
-{"\$(P)HBFwd-SP",       "$(EVR)", "Forward", 0x7a}
-{"\$(P)PpsFwd-SP",      "$(EVR)", "Forward", 125}
 {"\$(P)EvtAFwd-SP",     "$(EVR)", "Forward", 0}
 {"\$(P)EvtBFwd-SP",     "$(EVR)", "Forward", 0}
 {"\$(P)EvtCFwd-SP",     "$(EVR)", "Forward", 0}
