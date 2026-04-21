@@ -161,6 +161,7 @@ EVRMRM::EVRMRM(const std::string& n,
   ,evtlog_invoke_task(evtlog_invoke_method, "EvtLog",
                    epicsThreadGetStackSize(epicsThreadStackBig),
                    epicsThreadPriorityHigh )
+  ,count_evtlog_overflow(0)
   ,drain_fifo_method(*this)
   ,drain_fifo_task(drain_fifo_method, "EVRFIFO",
                    epicsThreadGetStackSize(epicsThreadStackBig),
@@ -1270,7 +1271,7 @@ void
 EVRMRM::drain_fifo()
 {
     size_t i;
-    printf("EVR FIFO task start\n");
+    printf("EVR: %s FIFO task start\n", evrName.c_str());
 
     SCOPED_LOCK2(evrLock, guard);
 
@@ -1330,8 +1331,13 @@ EVRMRM::drain_fifo()
             events[evt].last_sec=READ32(base, EvtFIFOSec);
             events[evt].last_evt=READ32(base, EvtFIFOEvt);
 
-            if (evtlogstart != 1 || ringbuffer.isFull()) {
-                // Add a flag to check ringbuffer overflow?
+            if (evtlogstart != 1) {
+                // not started
+            } else if (ringbuffer.isFull()) {
+                count_evtlog_overflow++;
+                if (count_evtlog_overflow % 1000 == 1) {
+                    errlogPrintf("EVR %s evtlog ringbuffer overflow! (dropped %u events)\n", evrName.c_str(), count_evtlog_overflow);
+                }
             }else if ((evt != 112) && (evt != 113)){
                 // buffer event '125', omit '112' and '113'
                 bufferedEvent *bevent = new bufferedEvent;
@@ -1561,19 +1567,13 @@ EVRMRM::evtlog_invoke()
     std::string postfix = "/"+evrName;
     strcat(prefix, evtlogdir);
     strcat(prefix, postfix.c_str());
-    if(access(prefix, F_OK) != 0) {
-        #ifdef  vxWorks
-        if (-1 == mkdir(prefix)){
-        #else
-        if (-1 == mkdir(prefix, 0775)){
-        #endif
-            printf("mkdir %s: error\n", prefix);
-            return;
-        }
-    }
     char year[256], month[256], day[256];
     char fullpath[256];
     bufferedEvent *be;
+    std::vector<char> nfs_buf(131072); // Safe explicit buffer for VxWorks setvbuf
+    int current_hour = -1;
+    int flush_counter = 0;
+    int items_written = 0;
     while(1) {
         sec = time(NULL);
         #ifdef  vxWorks
@@ -1582,76 +1582,117 @@ EVRMRM::evtlog_invoke()
         if (localtime_r(&sec, &tm) != NULL)
         #endif
         {
-            (void)snprintf(year, sizeof(year), "%s/%d", prefix, tm.tm_year+1900);
-            if(access(year, F_OK) != 0) {
-                #ifdef  vxWorks
-                if (-1 == mkdir(year)){
-                #else
-                if (-1 == mkdir(year, 0775)){
-                #endif
-                    printf("mkdir year error\n");
-                    return;
+            if (tm.tm_hour != current_hour) {
+                if(access(prefix, F_OK) != 0) {
+                    #ifdef  vxWorks
+                    if (-1 == mkdir(prefix)){
+                    #else
+                    if (-1 == mkdir(prefix, 0775)){
+                    #endif
+                        printf("mkdir %s: error\n", prefix);
+                        current_hour = -1;
+                        epicsThreadSleep(1.0);
+                        continue;
+                    }
                 }
-            }
-            (void)snprintf(month, sizeof(month), "%s/%02d", year, tm.tm_mon+1);
-            if (access(month, F_OK) != 0) {
-                #ifdef  vxWorks
-                if (-1 == mkdir(month)){
-                #else
-                if (-1 == mkdir(month, 0775)){
-                #endif
-                    printf("mkdir month error\n");
-                    return;
-                }
-            }
-            (void)snprintf(day, sizeof(day), "%s/%02d", month, tm.tm_mday);
-            if (access(day, F_OK) != 0) {
-                #ifdef  vxWorks
-                if (-1 == mkdir(day)){
-                #else
-                if (-1 == mkdir(day, 0775)){
-                #endif
-                    printf("mkdir day error\n");
-                    return;
-                }
-            }
-            (void)snprintf(fullpath, sizeof(fullpath), "%s/%02d.log", day, tm.tm_hour);
 
-            if (access(fullpath, F_OK) != 0) {
-                if (logfile != NULL)
+                (void)snprintf(year, sizeof(year), "%s/%d", prefix, tm.tm_year+1900);
+                if(access(year, F_OK) != 0) {
+                    #ifdef  vxWorks
+                    if (-1 == mkdir(year)){
+                    #else
+                    if (-1 == mkdir(year, 0775)){
+                    #endif
+                        printf("mkdir year error\n");
+                        current_hour = -1;
+                        epicsThreadSleep(1.0);
+                        continue;
+                    }
+                }
+                (void)snprintf(month, sizeof(month), "%s/%02d", year, tm.tm_mon+1);
+                if (access(month, F_OK) != 0) {
+                    #ifdef  vxWorks
+                    if (-1 == mkdir(month)){
+                    #else
+                    if (-1 == mkdir(month, 0775)){
+                    #endif
+                        printf("mkdir month error\n");
+                        current_hour = -1;
+                        epicsThreadSleep(1.0);
+                        continue;
+                    }
+                }
+                (void)snprintf(day, sizeof(day), "%s/%02d", month, tm.tm_mday);
+                if (access(day, F_OK) != 0) {
+                    #ifdef  vxWorks
+                    if (-1 == mkdir(day)){
+                    #else
+                    if (-1 == mkdir(day, 0775)){
+                    #endif
+                        printf("mkdir day error\n");
+                        current_hour = -1;
+                        epicsThreadSleep(1.0);
+                        continue;
+                    }
+                }
+                (void)snprintf(fullpath, sizeof(fullpath), "%s/%02d.log", day, tm.tm_hour);
+
+                if (logfile != NULL) {
                     (void)fclose(logfile);
+                    logfile = NULL;
+                }
                 if (evtlogencoding == 1) {
-                    if (NULL == (logfile = fopen(fullpath, "w"))) {
+                    if (NULL == (logfile = fopen(fullpath, "a"))) {
                         printf("open log file error: %s\n", fullpath);
-                        return;
+                        current_hour = -1;
+                        epicsThreadSleep(1.0);
+                        continue;
                     }
                 }else {
-                    if (NULL == (logfile = fopen(fullpath, "wb+"))) {
+                    if (NULL == (logfile = fopen(fullpath, "ab+"))) {
                         printf("open log file error: %s\n", fullpath);
-                        return;
+                        current_hour = -1;
+                        epicsThreadSleep(1.0);
+                        continue;
                     }
                 }
+                // Apply buffer explicitly
+                if (logfile != NULL) {
+                    setvbuf(logfile, &nfs_buf[0], _IOFBF, nfs_buf.size());
+                }
+                current_hour = tm.tm_hour;
             }
         }
 
-        while(!ringbuffer.isEmpty()){
+        int pop_count = 0;
+        while(!ringbuffer.isEmpty() && pop_count++ < 20000){
             be  = ringbuffer.pop();
-            // if (be->ts.secPastEpoch == 0)
-            //     continue;
-            // be->ts.secPastEpoch += POSIX_TIME_AT_EPICS_EPOCH;
-            // Convert ticks to nanoseconds
-            be->ts.nsec=(epicsUInt32)(be->ts.nsec * period);
-            // ascii file and binary file
-            if (evtlogencoding == 1) {
-                fprintf(logfile, "%u-%u.%u\n", be->code, be->ts.secPastEpoch, be->ts.nsec);
-            }
-            else {
-                fwrite (&(be->code), sizeof(unsigned char), 1, logfile);
-                fwrite (&(be->ts), sizeof(unsigned int), 2, logfile);
+            if (logfile != NULL) {
+                // Convert ticks to nanoseconds
+                be->ts.nsec=(epicsUInt32)(be->ts.nsec * period);
+                // ascii file and binary file
+                if (evtlogencoding == 1) {
+                    fprintf(logfile, "%u-%u.%u\n", be->code, be->ts.secPastEpoch, be->ts.nsec);
+                }
+                else {
+                    fwrite (&(be->code), sizeof(unsigned char), 1, logfile);
+                    fwrite (&(be->ts), sizeof(unsigned int), 2, logfile);
+                }
+                items_written++;
             }
             delete be;
         }
-        epicsThreadSleep(0.1);
+        
+        flush_counter++;
+        if (flush_counter >= 100) {
+            if (logfile != NULL && items_written > 0) {
+                fflush(logfile);
+                items_written = 0;
+            }
+            flush_counter = 0;
+        }
+
+        epicsThreadSleep(0.5);
     }
     // stop evtlog
     evtlogstart = 0;

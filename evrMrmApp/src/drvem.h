@@ -286,6 +286,7 @@ private:
     void evtlog_invoke();
     epicsThreadRunableMethod<EVRMRM, &EVRMRM::evtlog_invoke> evtlog_invoke_method;
     epicsThread evtlog_invoke_task;
+    epicsUInt32 count_evtlog_overflow;
 
     // run when FIFO not-full IRQ is received
     void drain_fifo();
