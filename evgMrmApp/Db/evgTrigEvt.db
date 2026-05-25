@@ -91,16 +91,22 @@ record(seq, "$(P)TrigSrcItlk-SQ_") {
   field(LNK1, "$(P)TrigSrc1Itlk-SQ_.DISA NPP NMS")
   field(DOL2, "1")
   field(LNK2, "$(P)TrigSrc2Itlk-SQ_.DISA NPP NMS")
-  field(DLY3, "0.3")
-  field(DOL3, "0")
-  field(LNK3, "$(P)TrigSrc1-Sel.VAL PP NMS")
+  field(DOL3, "1")
+  field(LNK3, "$(P)TrigSrc3Itlk-SQ_.DISA NPP NMS")
+  field(DLY4, "0.3")
   field(DOL4, "0")
-  field(LNK4, "$(P)TrigSrc2-Sel.VAL PP NMS")
-  field(DLY5, "0.3")
+  field(LNK4, "$(P)TrigSrc1-Sel.VAL PP NMS")
   field(DOL5, "0")
-  field(LNK5, "$(P)TrigSrc1Itlk-SQ_.DISA NPP NMS")
+  field(LNK5, "$(P)TrigSrc2-Sel.VAL PP NMS")
   field(DOL6, "0")
-  field(LNK6, "$(P)TrigSrc2Itlk-SQ_.DISA NPP NMS")
+  field(LNK6, "$(P)TrigSrc3-Sel.VAL PP NMS")
+  field(DLY7, "0.3")
+  field(DOL7, "0")
+  field(LNK7, "$(P)TrigSrc1Itlk-SQ_.DISA NPP NMS")
+  field(DOL8, "0")
+  field(LNK8, "$(P)TrigSrc2Itlk-SQ_.DISA NPP NMS")
+  field(DOL9, "0")
+  field(LNK9, "$(P)TrigSrc3Itlk-SQ_.DISA NPP NMS")
 }
 
 record(mbbo, "$(P)TrigSrc1-Sel") {
@@ -167,16 +173,22 @@ record(seq, "$(P)TrigSrc1Itlk-SQ_") {
   field(LNK1, "$(P)TrigSrcItlk-SQ_.DISA NPP NMS")
   field(DOL2, "1")
   field(LNK2, "$(P)TrigSrc2Itlk-SQ_.DISA NPP NMS")
-  field(DLY3, "0.3")
-  field(DOL3, "0")
-  field(LNK3, "$(P)TrigSrc-Sel.VAL PP NMS")
+  field(DOL3, "1")
+  field(LNK3, "$(P)TrigSrc3Itlk-SQ_.DISA NPP NMS")
+  field(DLY4, "0.3")
   field(DOL4, "0")
-  field(LNK4, "$(P)TrigSrc2-Sel.VAL PP NMS")
-  field(DLY5, "0.3")
+  field(LNK4, "$(P)TrigSrc-Sel.VAL PP NMS")
   field(DOL5, "0")
-  field(LNK5, "$(P)TrigSrcItlk-SQ_.DISA NPP NMS")
+  field(LNK5, "$(P)TrigSrc2-Sel.VAL PP NMS")
   field(DOL6, "0")
-  field(LNK6, "$(P)TrigSrc2Itlk-SQ_.DISA NPP NMS")
+  field(LNK6, "$(P)TrigSrc3-Sel.VAL PP NMS")
+  field(DLY7, "0.3")
+  field(DOL7, "0")
+  field(LNK7, "$(P)TrigSrcItlk-SQ_.DISA NPP NMS")
+  field(DOL8, "0")
+  field(LNK8, "$(P)TrigSrc2Itlk-SQ_.DISA NPP NMS")
+  field(DOL9, "0")
+  field(LNK9, "$(P)TrigSrc3Itlk-SQ_.DISA NPP NMS")
 }
 
 record(mbbo, "$(P)TrigSrc2-Sel") {
@@ -244,16 +256,91 @@ record(seq, "$(P)TrigSrc2Itlk-SQ_") {
   field(LNK1, "$(P)TrigSrcItlk-SQ_.DISA NPP NMS")
   field(DOL2, "1")
   field(LNK2, "$(P)TrigSrc1Itlk-SQ_.DISA NPP NMS")
-  field(DLY3, "0.3")
-  field(DOL3, "0")
-  field(LNK3, "$(P)TrigSrc-Sel.VAL PP NMS")
+  field(DOL3, "1")
+  field(LNK3, "$(P)TrigSrc3Itlk-SQ_.DISA NPP NMS")
+  field(DLY4, "0.3")
   field(DOL4, "0")
-  field(LNK4, "$(P)TrigSrc1-Sel.VAL PP NMS")
-  field(DLY5, "0.3")
+  field(LNK4, "$(P)TrigSrc-Sel.VAL PP NMS")
   field(DOL5, "0")
-  field(LNK5, "$(P)TrigSrcItlk-SQ_.DISA NPP NMS")
+  field(LNK5, "$(P)TrigSrc1-Sel.VAL PP NMS")
   field(DOL6, "0")
-  field(LNK6, "$(P)TrigSrc1Itlk-SQ_.DISA NPP NMS")
+  field(LNK6, "$(P)TrigSrc3-Sel.VAL PP NMS")
+  field(DLY7, "0.3")
+  field(DOL7, "0")
+  field(LNK7, "$(P)TrigSrcItlk-SQ_.DISA NPP NMS")
+  field(DOL8, "0")
+  field(LNK8, "$(P)TrigSrc1Itlk-SQ_.DISA NPP NMS")
+  field(DOL9, "0")
+  field(LNK9, "$(P)TrigSrc3Itlk-SQ_.DISA NPP NMS")
+}
+
+record(mbbo, "$(P)TrigSrc3-Sel") {
+  field(DESC, "EVG Trig Evt Trig (Backplane)")
+  field(ASG,  "$(ASGPROTECTED=protected)")
+  field(PINI, "YES")
+  field(VAL,  "0")
+  field(UDF,  "0")
+  field(ZRST, "Off")
+  field(ONST, "Back0")
+  field(TWST, "Back1")
+  field(THST, "Back2")
+  field(FRST, "Back3")
+  field(FVST, "Back4")
+  field(SXST, "Back5")
+  field(SVST, "Back6")
+  field(EIST, "Back7")
+  field(ZRVL, "0")
+  field(ONVL, "1")
+  field(TWVL, "2")
+  field(THVL, "4")
+  field(FRVL, "8")
+  field(FVVL, "16")
+  field(SXVL, "32")
+  field(SVVL, "64")
+  field(EIVL, "128")
+  field(UNSV, "INVALID")
+  field(IVOA, "Don't drive outputs")
+  field(FLNK, "$(P)TrigSrc3-SQ_")
+  info(autosaveFields_pass0, "VAL")
+}
+
+record(mbbiDirect, "$(P)TrigSrc3-MbbiDir_") {
+  field(ASG, "$(ASGPRIVATE=private)")
+  field(DESC, "EVG Trig Evt Trig")
+  field(INP,  "$(P)TrigSrc3-Sel.RVAL")
+}
+
+record(seq, "$(P)TrigSrc3-SQ_"){
+  field(ASG,  "$(ASGPRIVATE=private)")
+  field(DOL1, "0")
+  field(LNK1, "$(P)TrigSrc3Itlk-SQ_.PROC")
+  field(DOL2, "0")
+  field(LNK2, "$(P)TrigSrc3-MbbiDir_.PROC")
+}
+
+record(seq, "$(P)TrigSrc3Itlk-SQ_") {
+  field(DESC, "Sequence to control TrigSrc Select")
+  field(ASG,  "$(ASGPRIVATE=private)")
+  field(DOL1, "1")
+  field(LNK1, "$(P)TrigSrcItlk-SQ_.DISA NPP NMS")
+  field(DOL2, "1")
+  field(LNK2, "$(P)TrigSrc1Itlk-SQ_.DISA NPP NMS")
+  field(DOL3, "1")
+  field(LNK3, "$(P)TrigSrc2Itlk-SQ_.DISA NPP NMS")
+  field(DLY4, "0.3")
+  field(DOL4, "0")
+  field(LNK4, "$(P)TrigSrc-Sel.VAL PP NMS")
+  field(DOL5, "0")
+  field(LNK5, "$(P)TrigSrc1-Sel.VAL PP NMS")
+  field(DOL6, "0")
+  field(LNK6, "$(P)TrigSrc2-Sel.VAL PP NMS")
+  field(DLY7, "0.3")
+  field(DOL7, "0")
+  field(LNK7, "$(P)TrigSrcItlk-SQ_.DISA NPP NMS")
+  field(DOL8, "0")
+  field(LNK8, "$(P)TrigSrc1Itlk-SQ_.DISA NPP NMS")
+  field(DOL9, "0")
+  field(LNK9, "$(P)TrigSrc2Itlk-SQ_.DISA NPP NMS")
 }
 
 record(bo, "$(P)TrigSrcMxc0-Sel") {
@@ -696,6 +783,86 @@ record(bo, "$(P)TrigSrcRearInp15-Sel") {
   field(DOL,  "$(P)TrigSrc2-MbbiDir_.BE CP")
 }
 
+record(bo, "$(P)TrigSrcBackInp0-Sel") {
+  field(ASG,  "$(ASGPROTECTED=protected)")
+  field(DTYP, "EVG TrigEvt")
+  field(OUT , "#C0 S$(trigEvtNum) @$(EVG):BackInp0")
+  field(ZNAM, "Clear")
+  field(ONAM, "Set")
+  field(OMSL, "closed_loop")
+  field(DOL,  "$(P)TrigSrc3-MbbiDir_.B0 CP")
+}
+
+record(bo, "$(P)TrigSrcBackInp1-Sel") {
+  field(ASG,  "$(ASGPROTECTED=protected)")
+  field(DTYP, "EVG TrigEvt")
+  field(OUT , "#C0 S$(trigEvtNum) @$(EVG):BackInp1")
+  field(ZNAM, "Clear")
+  field(ONAM, "Set")
+  field(OMSL, "closed_loop")
+  field(DOL,  "$(P)TrigSrc3-MbbiDir_.B1 CP")
+}
+
+record(bo, "$(P)TrigSrcBackInp2-Sel") {
+  field(ASG,  "$(ASGPROTECTED=protected)")
+  field(DTYP, "EVG TrigEvt")
+  field(OUT , "#C0 S$(trigEvtNum) @$(EVG):BackInp2")
+  field(ZNAM, "Clear")
+  field(ONAM, "Set")
+  field(OMSL, "closed_loop")
+  field(DOL,  "$(P)TrigSrc3-MbbiDir_.B2 CP")
+}
+
+record(bo, "$(P)TrigSrcBackInp3-Sel") {
+  field(ASG,  "$(ASGPROTECTED=protected)")
+  field(DTYP, "EVG TrigEvt")
+  field(OUT , "#C0 S$(trigEvtNum) @$(EVG):BackInp3")
+  field(ZNAM, "Clear")
+  field(ONAM, "Set")
+  field(OMSL, "closed_loop")
+  field(DOL,  "$(P)TrigSrc3-MbbiDir_.B3 CP")
+}
+
+record(bo, "$(P)TrigSrcBackInp4-Sel") {
+  field(ASG,  "$(ASGPROTECTED=protected)")
+  field(DTYP, "EVG TrigEvt")
+  field(OUT , "#C0 S$(trigEvtNum) @$(EVG):BackInp4")
+  field(ZNAM, "Clear")
+  field(ONAM, "Set")
+  field(OMSL, "closed_loop")
+  field(DOL,  "$(P)TrigSrc3-MbbiDir_.B4 CP")
+}
+
+record(bo, "$(P)TrigSrcBackInp5-Sel") {
+  field(ASG,  "$(ASGPROTECTED=protected)")
+  field(DTYP, "EVG TrigEvt")
+  field(OUT , "#C0 S$(trigEvtNum) @$(EVG):BackInp5")
+  field(ZNAM, "Clear")
+  field(ONAM, "Set")
+  field(OMSL, "closed_loop")
+  field(DOL,  "$(P)TrigSrc3-MbbiDir_.B5 CP")
+}
+
+record(bo, "$(P)TrigSrcBackInp6-Sel") {
+  field(ASG,  "$(ASGPROTECTED=protected)")
+  field(DTYP, "EVG TrigEvt")
+  field(OUT , "#C0 S$(trigEvtNum) @$(EVG):BackInp6")
+  field(ZNAM, "Clear")
+  field(ONAM, "Set")
+  field(OMSL, "closed_loop")
+  field(DOL,  "$(P)TrigSrc3-MbbiDir_.B6 CP")
+}
+
+record(bo, "$(P)TrigSrcBackInp7-Sel") {
+  field(ASG,  "$(ASGPROTECTED=protected)")
+  field(DTYP, "EVG TrigEvt")
+  field(OUT , "#C0 S$(trigEvtNum) @$(EVG):BackInp7")
+  field(ZNAM, "Clear")
+  field(ONAM, "Set")
+  field(OMSL, "closed_loop")
+  field(DOL,  "$(P)TrigSrc3-MbbiDir_.B7 CP")
+}
+
 #
 # By default OMSL field for the *TrigSrc* records is "closed_loop" hence
 # only one Source can be selected due of MBBO record. If you want to select
@@ -725,6 +892,7 @@ record(dfanout, "$(P)Omsl-FOut_") {
   field(OUTD, "$(P)Omsl3-FOut_ PP")
   field(OUTE, "$(P)Omsl4-FOut_ PP")
   field(OUTF, "$(P)Omsl5-FOut_ PP")
+  field(OUTG, "$(P)Omsl6-FOut_ PP")
 }
 
 record(dfanout, "$(P)Omsl0-FOut_") {
@@ -799,6 +967,19 @@ record(dfanout, "$(P)Omsl5-FOut_") {
   field(OUTB, "$(P)TrigSrcRearInp13-Sel.OMSL")
   field(OUTC, "$(P)TrigSrcRearInp14-Sel.OMSL")
   field(OUTD, "$(P)TrigSrcRearInp15-Sel.OMSL")
+}
+
+record(dfanout, "$(P)Omsl6-FOut_") {
+  field(ASG, "$(ASGPRIVATE=private)")
+  field(OMSL, "closed_loop")
+  field(OUTA, "$(P)TrigSrcBackInp0-Sel.OMSL")
+  field(OUTB, "$(P)TrigSrcBackInp1-Sel.OMSL")
+  field(OUTC, "$(P)TrigSrcBackInp2-Sel.OMSL")
+  field(OUTD, "$(P)TrigSrcBackInp3-Sel.OMSL")
+  field(OUTE, "$(P)TrigSrcBackInp4-Sel.OMSL")
+  field(OUTF, "$(P)TrigSrcBackInp5-Sel.OMSL")
+  field(OUTG, "$(P)TrigSrcBackInp6-Sel.OMSL")
+  field(OUTH, "$(P)TrigSrcBackInp7-Sel.OMSL")
 }
 
 record(waveform, "$(P)Label-I") {
