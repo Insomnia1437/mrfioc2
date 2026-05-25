@@ -160,7 +160,7 @@ EVRMRM::EVRMRM(const std::string& n,
   ,evtlog_invoke_method(*this)
   ,evtlog_invoke_task(evtlog_invoke_method, "EvtLog",
                    epicsThreadGetStackSize(epicsThreadStackBig),
-                   epicsThreadPriorityHigh )
+                   epicsThreadPriorityLow )
   ,count_evtlog_overflow(0)
   ,drain_fifo_method(*this)
   ,drain_fifo_task(drain_fifo_method, "EVRFIFO",
@@ -1570,10 +1570,8 @@ EVRMRM::evtlog_invoke()
     char year[256], month[256], day[256];
     char fullpath[256];
     bufferedEvent *be;
-    std::vector<char> nfs_buf(131072); // Safe explicit buffer for VxWorks setvbuf
+    std::vector<char> nfs_buf(1048576); // 1 MB buffer for optimal NFS batching without chunking 20k events
     int current_hour = -1;
-    int flush_counter = 0;
-    int items_written = 0;
     while(1) {
         sec = time(NULL);
         #ifdef  vxWorks
@@ -1678,21 +1676,15 @@ EVRMRM::evtlog_invoke()
                     fwrite (&(be->code), sizeof(unsigned char), 1, logfile);
                     fwrite (&(be->ts), sizeof(unsigned int), 2, logfile);
                 }
-                items_written++;
             }
             delete be;
         }
-        
-        flush_counter++;
-        if (flush_counter >= 100) {
-            if (logfile != NULL && items_written > 0) {
-                fflush(logfile);
-                items_written = 0;
-            }
-            flush_counter = 0;
-        }
 
-        epicsThreadSleep(0.5);
+        if (!ringbuffer.isEmpty()) {
+            epicsThreadSleep(0.01);
+        } else {
+            epicsThreadSleep(0.5);
+        }
     }
     // stop evtlog
     evtlogstart = 0;
